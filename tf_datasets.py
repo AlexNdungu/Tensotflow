@@ -2,8 +2,13 @@ import tensorflow as tf
 from tensorflow import keras
 import tensorflow_datasets as tfds
 
-import matplotlib.pyplot
-
+(ds_train, ds_test), ds_info = tfds.load(
+    "mnist",
+    split=["train","test"],
+    shuffle_files=True,
+    as_supervised=True,
+    with_info=True
+)
 
 def normalize_image(image, label):
 
@@ -14,6 +19,8 @@ def normalize_image(image, label):
 
 AUTOTUNE = tf.data.experimental.AUTOTUNE
 BATCH_SIZE = 64
+
+
 ds_train = ds_train.map(normalize_image, num_parallel_calls=AUTOTUNE)
 ds_train = ds_train.cache()
 ds_train = ds_train.shuffle(ds_info.splits["train"].num_examples)
