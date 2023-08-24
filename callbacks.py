@@ -45,7 +45,7 @@ def scheduler(epoch, lr):
     else:
         return lr * 0.99
 
-
+lr_scheduler = keras.callbacks.LearningRateScheduler(scheduler, verbose=1)
 
 save_callback = keras.callbacks.ModelCheckpoint(
     "checkpoint/", save_weights_only=True, monitor="accuracy", save_best_only=False
@@ -57,4 +57,4 @@ model.compile(
     metrics=["accuracy"],
 )
 
-model.fit(ds_train, epochs=10, verbose=2, callbacks=[save_callback])
+model.fit(ds_train, epochs=10, verbose=2, callbacks=[save_callback, lr_scheduler])
