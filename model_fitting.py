@@ -30,28 +30,43 @@ class CustomFit(keras.Model):
         super(CustomFit, self).__init__()
         self.model = model
 
+    def compile(self, optimizer, loss):
+        super(CustomFit, self).compile()
+        self.optimizer = optimizer
+        self.loss = loss
+
     def train_step(self, data):
         x, y = data
 
         with tf.GradientTape() as tape:
             y_pred = self.model(x, training=True)
-            loss = self.compiled_loss(y, y_pred)
+            loss = self.loss(y, y_pred)
 
         # Compute gradients
         trainable_vars = self.model.trainable_variables
         gradients = tape.gradient(loss, trainable_vars)
 
         self.optimizer.apply_gradients(zip(gradients, trainable_vars))
-        self.compiled_metrics.update_state(y, y_pred)    
+        acc_metric.update_state(y, y_pred)   
 
-        return {m.name: m.result() for m in self.metrics}
+        return {"loss": loss, "accuracy": acc_metric.result()}
+    
+    def test_step(self, data):
+        x, y = data
+        y_pred = self.model(x, training=False)
+        loss = self.loss(y, y_pred)
+        acc_metric.update_state(y, y_pred)
 
+        return {"loss": loss, "accuracy": acc_metric.result()}
+
+
+acc_metric = keras.metrics.SparseCategoricalAccuracy(name="accuracy")
 
 training = CustomFit(model)
 training.compile(
     optimizer=keras.optimizers.Adam(),
     loss=keras.losses.SparseCategoricalCrossentropy(from_logits=True),
-    metrics=["accuracy"],
 )
 
 training.fit(x_train, y_train, batch_size=32, epochs=2, verbose=2)
+training.evaluate(x_test, y_test, batch_size=32)
