@@ -51,10 +51,17 @@ save_callback = keras.callbacks.ModelCheckpoint(
     "checkpoint/", save_weights_only=True, monitor="accuracy", save_best_only=False
 )
 
+# Create a class called CustomCallback
+class CustomCallback(keras.callbacks.Callback):
+    def on_epoch_end(self, epoch, logs=None):
+        if logs.get("accuracy") > 0.90:
+            print("\nReached 90% accuracy so cancelling training!")
+            self.model.stop_training = True
+
 model.compile(
     optimizer=keras.optimizers.Adam(0.01),
     loss=keras.losses.SparseCategoricalCrossentropy(from_logits=True),
     metrics=["accuracy"],
 )
 
-model.fit(ds_train, epochs=10, verbose=2, callbacks=[save_callback, lr_scheduler])
+model.fit(ds_train, epochs=10, verbose=2, callbacks=[save_callback, lr_scheduler, CustomCallback()])
