@@ -18,10 +18,26 @@ def normalize_img(image, label):
 AUTOTUNE = tf.data.experimental.AUTOTUNE
 BATCH_SIZE = 32
 
+# Create a fucntion to apply data augmentation
+def augment(image,label):
+    new_height = new_width = 32
+    image = tf.image.resize(image, (new_height, new_width))
+
+    # convert image to grayscale
+    if tf.random.uniform((), minval=0, maxval=1) < 0.1:
+        image = tf.tile(tf.image.rgb_to_grayscale(image), [1, 1, 3])
+
+    image = tf.image.random_brightness(image, max_delta=0.1) # Random brightness
+    image = tf.image.random_contrast(image, lower=0.1, upper=0.2) # Random contrast
+    image = tf.image.random_flip_left_right(image) # Random flip    
+
+    return image, label
+
 # setup for train dataset
 ds_train = ds_train.map(normalize_img, num_parallel_calls=AUTOTUNE)
 ds_train = ds_train.cache()
 ds_train = ds_train.shuffle(ds_info.splits["train"].num_examples)
+ds_train = ds_train.map(augment, num_parallel_calls=AUTOTUNE)
 ds_train = ds_train.batch(BATCH_SIZE)
 ds_train = ds_train.prefetch(AUTOTUNE)
 
