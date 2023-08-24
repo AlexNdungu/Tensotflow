@@ -38,10 +38,23 @@ model = keras.Sequential(
     ]
 )
 
+# create a scheduler function
+def scheduler(epoch, lr):
+    if epoch < 2:
+        return lr
+    else:
+        return lr * 0.99
+
+
+
+save_callback = keras.callbacks.ModelCheckpoint(
+    "checkpoint/", save_weights_only=True, monitor="accuracy", save_best_only=False
+)
+
 model.compile(
     optimizer=keras.optimizers.Adam(0.01),
     loss=keras.losses.SparseCategoricalCrossentropy(from_logits=True),
     metrics=["accuracy"],
 )
 
-model.fit(ds_train, epochs=10, verbose=2)
+model.fit(ds_train, epochs=10, verbose=2, callbacks=[save_callback])
