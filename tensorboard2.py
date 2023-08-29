@@ -79,22 +79,33 @@ def get_model():
 
 
 model = get_model()
+num_epoch = 1
+loss_fn = keras.losses.SparseCategoricalCrossentropy(from_logits=True)
+optimizer = keras.optimizers.Adam(learning_rate=0.001)
+acc_metric = keras.metrics.SparseCategoricalAccuracy()
+train_writer = tf.summary.create_file_writer("logs/train")
+test_writer = tf.summary.create_file_writer("logs/test")
+train_step = test_step = 0
 
-model.compile(
-    optimizer=keras.optimizers.Adam(learning_rate=0.001),
-    loss=keras.losses.SparseCategoricalCrossentropy(from_logits=True),
-    metrics=['accuracy'],
-)
 
-# Define tensorboard callback
-tensorboard_callback = keras.callbacks.TensorBoard(
-    log_dir="tb_callback_dir", histogram_freq=1
-    )
+for epoch in range(num_epoch):
+    # Iterate through training set
+    for batch_idx, (x, y) in enumerate(ds_train):
+        with tf.GradientTape() as tape:
+            y_pred = model(x, training=True)
+            loss = loss_fn(y, y_pred)
 
-model.fit(
-    ds_train,
-    epochs=5,
-    validation_data=ds_test,
-    callbacks=[tensorboard_callback],
-    verbose=2,
-)
+        gradients = tape.gradient(loss, model.trainable_weights)
+        optimizer.apply_gradients(zip(gradients, model.trainable_weights))
+        acc_metric.update_state(y, y_pred)
+
+    # reset the accuracy for each epoch
+    acc_metric.reset_states()
+
+    # Iterate through test set
+    for batch_idx, (x, y) in enumerate(ds_test):
+        y_pred = model(x, training=False)
+        loss = loss_fn(y, y_pred)
+        acc_metric.update_state(y, y_pred)
+
+    acc_metric.reset_states()
