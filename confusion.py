@@ -7,6 +7,8 @@ import tensorflow_datasets as tfds
 from tensorflow import keras
 from tensorflow.keras import layers
 
+from utils import plot_confusion_matrix, get_confusion_matrix
+
 # Load cifar10 from tensorflow_datasets
 (ds_train, ds_test), ds_info = tfds.load(
     "cifar10",
@@ -105,7 +107,7 @@ for epoch in range(num_epoch):
         confusion += get_confusion_matrix(y, y_pred, class_name)
 
     with train_writer.as_default():
-        tf.sumary.image("Confusion Matrix", plot_confusion_matrix(confusion / batch_idx, class_name), step=epoch)
+        tf.summary.image("Confusion Matrix", plot_confusion_matrix(confusion / batch_idx, class_name), step=epoch)
 
     # reset the accuracy for each epoch
     acc_metric.reset_states()

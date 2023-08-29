@@ -47,3 +47,39 @@ def image_grid(data, labels, class_names):
             plt.imshow(data[i])
 
     return figure    
+
+
+def get_confusion_matrix(y_labels, logits, class_names):
+    
+    preds = np.argmax(logits, axis=1)
+    cm = sklearn.metrics.confusion_matrix(y_labels, preds, labels=range(len(class_names)))
+
+    return cm
+
+def plot_confusion_matrix(cm, class_names):
+    
+    size = len(class_names)
+    figure = plt.figure(figsize=(size, size))
+    plt.imshow(cm, interpolation='nearest', cmap=plt.cm.Blues)
+    plt.title("Confusion Matrix")
+
+    indices = np.arange(len(class_names))
+    plt.xticks(indices, class_names, rotation=45)
+    plt.yticks(indices, class_names)
+
+    # Normalize the confusion matrix.
+    cm = np.around(cm.astype('float') / cm.sum(axis=1)[:, np.newaxis], decimals=3)
+
+    threshold = cm.max() / 2.0
+
+    for i in range(size):
+        for j in range(size):
+            color = "white" if cm[i, j] > threshold else "black"
+            plt.text(j, i, cm[i, j], horizontalalignment="center", color=color)
+
+    plt.tight_layout()
+    plt.ylabel('True label')
+    plt.xlabel('Predicted label')
+
+    cm_image = plot_to_image(figure)
+    return cm_image
