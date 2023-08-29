@@ -9,7 +9,7 @@ from tensorflow.keras import layers
 
 from tensorboard.plugins.hparams import api as hp
 
-from utils import plot_to_image, image_grid
+from utils import plot_to_projector
 
 # Load cifar10 from tensorflow_datasets
 (ds_train, ds_test), ds_info = tfds.load(
@@ -22,7 +22,7 @@ from utils import plot_to_image, image_grid
 
 # Nomalize function
 def normalize_img(image, label):
-    return tf.cast(image, tf.float32) / 255.0, label
+    return tf.cast(image, tf.float32), label
 
 # Augmentation function
 def augment(image, label):
@@ -69,4 +69,4 @@ class_name = [
 ]
 
 x_batch, y_batch = next(iter(ds_train))
-plot_to_projector(x_batch, y_batch, class_name, logdir="projector")
+plot_to_projector(x_batch, x_batch, y_batch, class_name, log_dir="projector")
